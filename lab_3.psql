@@ -1,0 +1,344 @@
+-- Napisz zapytanie w języku SQL wyświetlające informacje na temat zamówień (idZamowienia, dataRealizacji), które mają być zrealizowane:
+-- LAB 3.1.1
+-- między 12 i 20 listopada 2013
+
+SELECT idzamowienia, datarealizacji FROM "zamowienia"
+WHERE datarealizacji BETWEEN '12-11-2013' AND '20-11-2013';
+
+-- LAB 3.1.2
+-- między 1 i 6 grudnia lub między 15 i 20 grudnia 2013
+
+SELECT idzamowienia, datarealizacji FROM "zamowienia"
+WHERE datarealizacji BETWEEN '1-12-2013' AND '6-12-2013' OR datarealizacji BETWEEN '15-12-2013' AND '20-12-2013';
+
+-- LAB 3.1.3
+-- w grudniu 2013 (nie używaj funkcji date_part ani extract)
+
+SELECT idzamowienia, datarealizacji FROM "zamowienia"
+WHERE datarealizacji BETWEEN '1-12-2013' AND DATE '1-12-2014' - INTERVAL '1 DAY';
+
+-- LAB 3.1.4
+-- w listopadzie 2013 (w tym i kolejnych zapytaniach użyj funkcji date_part lub extract)
+
+SELECT idzamowienia, datarealizacji FROM "zamowienia"
+WHERE date_part('month', datarealizacji) = 11;
+
+-- LAB 3.1.5
+-- w listopadzie lub grudniu 2013
+
+SELECT idzamowienia, datarealizacji FROM "zamowienia"
+WHERE date_part('month', datarealizacji) IN (11,12);
+
+-- LAB 3.1.6
+-- 17, 18 lub 19 dnia miesiąca
+
+SELECT idzamowienia, datarealizacji FROM "zamowienia"
+WHERE date_part('day', datarealizacji) IN (17,18,19);
+
+-- LAB 3.1.7
+-- 46 lub 47 tygodniu roku
+
+SELECT idzamowienia, datarealizacji FROM "zamowienia"
+WHERE date_part('week', datarealizacji) IN (46,47);
+
+---
+
+-- Napisz zapytanie w języku SQL wyświetlające informacje na temat czekoladek (idCzekoladki, nazwa, czekolada, orzechy, nadzienie), których nazwa:
+
+-- LAB 3.2.1
+-- rozpoczyna się na literę 'S'
+
+SELECT idczekoladki, nazwa, czekolada, orzechy, nadzienie FROM czekoladki
+WHERE nazwa LIKE 'S%';
+
+-- LAB 3.2.2
+-- rozpoczyna się na literę 'S' i kończy się na literę 'i'
+
+SELECT idczekoladki, nazwa, czekolada, orzechy, nadzienie FROM czekoladki
+WHERE nazwa LIKE 'S%i';
+
+-- LAB 3.2.3
+-- rozpoczyna się na literę 'S' i zawiera słowo rozpoczynające się na literę 'm'
+
+SELECT idczekoladki, nazwa, czekolada, orzechy, nadzienie FROM czekoladki
+WHERE nazwa LIKE 'S% m%';
+
+-- LAB 3.2.4
+-- rozpoczyna się na literę 'A', 'B' lub 'C'
+
+SELECT idczekoladki, nazwa, czekolada, orzechy, nadzienie FROM czekoladki
+WHERE nazwa SIMILAR TO '[A|B|C]%';
+
+-- LAB 3.2.5
+-- zawiera rdzeń 'orzech' (może on wystąpić na początku i wówczas będzie pisany z wielkiej litery)
+
+SELECT idczekoladki, nazwa, czekolada, orzechy, nadzienie FROM czekoladki
+WHERE nazwa ILIKE '%orzech%';
+
+-- LAB 3.2.6
+-- rozpoczyna się na literę 'S' i zawiera w środku literę 'm'
+
+SELECT idczekoladki, nazwa, czekolada, orzechy, nadzienie FROM czekoladki
+WHERE nazwa LIKE 'S%m_%';
+
+-- LAB 3.2.7
+-- zawiera słowo 'maliny' lub 'truskawki'
+
+SELECT idczekoladki, nazwa, czekolada, orzechy, nadzienie FROM czekoladki
+WHERE nazwa LIKE '%maliny%' OR nazwa LIKE '%truskawki%';
+
+-- LAB 3.2.8
+-- nie rozpoczyna się żadną z liter: 'D'-'K', 'S' i 'T'
+
+SELECT idczekoladki, nazwa, czekolada, orzechy, nadzienie FROM czekoladki
+WHERE nazwa NOT SIMILAR TO '[D-KST]%';
+
+-- LAB 3.2.9
+-- rozpoczyna się od 'Slod' ('Słod')
+
+SELECT idczekoladki, nazwa, czekolada, orzechy, nadzienie FROM czekoladki
+WHERE nazwa LIKE 'Słod%';
+
+-- LAB 3.2.10
+-- składa się dokładnie z jednego słowa
+
+SELECT idczekoladki, nazwa, czekolada, orzechy, nadzienie FROM czekoladki
+WHERE nazwa NOT LIKE '% %';
+
+---
+
+-- Napisz zapytanie w języku SQL oparte na tabeli Klienci, które:
+
+-- LAB 3.3.1
+-- wyświetla unikalne nazwy miast, z których pochodzą klienci cukierni i które składają się z więcej niż jednego słowa
+
+SELECT DISTINCT miejscowosc FROM "klienci"
+WHERE miejscowosc LIKE '% %';
+
+-- LAB 3.3.2
+-- wyświetla nazwy i numery telefonów klientów, którzy podali numer stacjonarny telefonu (np. 012 222 22 00)
+
+SELECT nazwa, telefon FROM klienci
+WHERE telefon LIKE '___ ___ __ __';
+
+-- LAB 3.3.3
+-- wyświetla nazwy i numery telefonów klientów, którzy podali numer komórkowy telefonu
+
+SELECT nazwa, telefon FROM klienci
+WHERE telefon NOT LIKE '___ ___ __ __';
+
+---
+
+-- Korzystając z zapytań z zadania 2.4 oraz operatorów UNION, INTERSECT, EXCEPT napisz zapytanie w języku SQL wyświetlające informacje na temat czekoladek (idCzekoladki, nazwa, masa, koszt), których:
+
+-- LAB 3.4.1
+-- masa mieści się w przedziale od 15 do 24 g lub koszt produkcji mieści się w przedziale od 15 do 24 gr
+
+SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE masa BETWEEN 15 AND 24
+UNION 
+SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE koszt BETWEEN 0.15 AND 0.24;
+
+-- LAB 3.4.2
+-- masa mieści się w przedziale od 25 do 35 g, ale koszt produkcji nie mieści się w przedziale od 25 do 35 gr
+
+SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE masa BETWEEN 25 AND 35
+EXCEPT
+SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE koszt BETWEEN 0.25 AND 0.35;
+
+-- LAB 3.4.3
+-- [masa mieści się w przedziale od 15 do 24 g i koszt produkcji mieści się w przedziale od 15 do 24 gr] lub [masa mieści się w przedziale od 25 do 35 g i koszt produkcji mieści się w przedziale od 25 do 35 gr]
+
+(SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE masa BETWEEN 15 AND 24
+INTERSECT
+SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE koszt BETWEEN 0.15 AND 0.24)
+UNION
+(SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE masa BETWEEN 25 AND 35
+INTERSECT
+SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE koszt BETWEEN 0.25 AND 0.35);
+
+-- LAB 3.4.4
+-- ★ masa mieści się w przedziale od 15 do 24 g i koszt produkcji mieści się w przedziale od 15 do 24 gr
+
+SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE masa BETWEEN 15 AND 24
+INTERSECT
+SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE koszt BETWEEN 0.15 AND 0.24;
+
+-- LAB 3.4.5
+-- ★ masa mieści się w przedziale od 25 do 35 g, ale koszt produkcji nie mieści się ani w przedziale od 15 do 24 gr, ani w przedziale od 29 do 35 gr.
+
+SELECT idczekoladki, nazwa, masa, koszt
+FROM czekoladki
+WHERE masa BETWEEN 25 AND 35
+EXCEPT
+(
+    SELECT idczekoladki, nazwa, masa, koszt
+    FROM czekoladki
+    WHERE koszt BETWEEN 0.15 AND 0.24
+    UNION
+    SELECT idczekoladki, nazwa, masa, koszt
+    FROM czekoladki
+    WHERE koszt BETWEEN 0.29 AND 0.35
+);
+
+---
+
+-- Korzystając z operatorów UNION, INTERSECT, EXCEPT napisz zapytanie w języku SQL wyświetlające:
+
+-- LAB 3.5.1
+-- identyfikatory klientów, którzy nigdy nie złożyli żadnego zamówienia,
+
+SELECT idklienta
+FROM klienci
+EXCEPT
+SELECT idklienta
+FROM zamowienia;
+
+-- LAB 3.5.2
+-- identyfikatory pudełek, które nigdy nie zostały zamówione,
+
+SELECT idpudelka
+FROM pudelka
+EXCEPT
+SELECT idpudelka
+FROM artykuly;
+
+-- LAB 3.5.3
+-- ★ nazwy klientów, czekoladek i pudełek, które zawierają rz (lub Rz),
+
+SELECT *
+FROM 
+(
+    SELECT nazwa
+    FROM klienci
+    UNION
+    SELECT nazwa
+    FROM czekoladki
+    UNION
+    SELECT nazwa
+    FROM pudelka
+) AS A
+WHERE A.nazwa ILIKE '%rz%';
+
+-- LAB 3.5.4
+-- ★ identyfikatory czekoladek, które nie występują w żadnym pudełku.
+
+SELECT idczekoladki
+FROM czekoladki
+EXCEPT
+SELECT idczekoladki
+FROM zawartosc;
+
+---
+
+-- Napisz zapytanie w języku SQL wyświetlające:
+
+-- LAB 3.6.1
+-- identyfikator meczu, sumę punktów zdobytych przez gospodarzy i sumę punktów zdobytych przez gości,
+
+SELECT idmeczu
+    ,gospodarze[1]+gospodarze[2]+gospodarze[3]+COALESCE(gospodarze[4], 0)+COALESCE(gospodarze[5], 0) AS gospodarze
+    ,goscie[1]+goscie[2]+goscie[3]+COALESCE(goscie[4], 0)+COALESCE(goscie[5], 0) AS goscie
+FROM siatkowka.statystyki;
+
+-- LAB 3.6.2
+-- identyfikator meczu, sumę punktów zdobytych przez gospodarzy i sumę punktów zdobytych przez gości, dla meczów, które skończyły się po 5 setach i zwycięzca ostatniego seta zdobył w nim ponad 15 punktów,
+
+SELECT idmeczu
+    ,(SELECT SUM(s) FROM UNNEST(gospodarze) s) as gospodarze
+    ,(SELECT SUM(s) FROM UNNEST(goscie) s) as goscie
+FROM siatkowka.statystyki
+WHERE GREATEST(gospodarze[5], goscie[5])>15;
+
+-- LAB 3.6.3
+-- identyfikator i wynik meczu w formacie x:y, np. 3:1 (wynik jest pojedynczą kolumną – napisem),
+
+SELECT 
+    idmeczu,
+    concat(
+        CASE WHEN gospodarze[1]>goscie[1] THEN 1 ELSE 0 END
+        + CASE WHEN gospodarze[2]>goscie[2] THEN 1 ELSE 0 END
+        + CASE WHEN gospodarze[3]>goscie[3] THEN 1 ELSE 0 END
+        + CASE WHEN gospodarze[4]>goscie[4] THEN 1 ELSE 0 END
+        + CASE WHEN gospodarze[5]>goscie[5] THEN 1 ELSE 0 END
+        , ':', 
+        CASE WHEN gospodarze[1]<goscie[1] THEN 1 ELSE 0 END
+        + CASE WHEN gospodarze[2]<goscie[2] THEN 1 ELSE 0 END
+        + CASE WHEN gospodarze[3]<goscie[3] THEN 1 ELSE 0 END
+        + CASE WHEN gospodarze[4]<goscie[4] THEN 1 ELSE 0 END
+        + CASE WHEN gospodarze[5]<goscie[5] THEN 1 ELSE 0 END
+    ) as wynik
+FROM siatkowka.statystyki;
+
+-- LAB 3.6.4
+-- ★ identyfikator meczu, sumę punktów zdobytych przez gospodarzy i sumę punktów zdobytych przez gości, dla meczów, w których gospodarze zdobyli ponad 100 punktów,
+
+SELECT idmeczu
+    ,(SELECT SUM(s) FROM UNNEST(gospodarze) s) as gospodarze
+    ,(SELECT SUM(s) FROM UNNEST(goscie) s) as goscie
+FROM siatkowka.statystyki
+WHERE (SELECT SUM(s) FROM UNNEST(gospodarze) s) > 100;
+
+-- LAB 3.6.5
+-- ★ identyfikator meczu, liczbę punktów zdobytych przez gospodarzy w pierwszym secie, sumę punktów zdobytych w meczu przez gospodarzy, dla meczów, w których pierwiastek kwadratowy z liczby punktów zdobytych przez gospodarzy w pierwszym secie jest mniejszy niż logarytm o podstawie 2 z sumy punktów zdobytych w meczu przez gospodarzy. ;)
+
+SELECT idmeczu, gospodarze[1] pierwszy_set, (SELECT SUM(s) FROM UNNEST(gospodarze) s) as gospodarze
+FROM siatkowka.statystyki
+WHERE sqrt(gospodarze[1]) < log(2, (SELECT SUM(s) FROM UNNEST(gospodarze) s));
+
+-- Zadanie 3.7
+-- ★ Napisz skrypt składający się z poleceń psql, który wykona zapytanie (użyj dowolnego zapytania z zadania 3.6) oraz zwróci jego wynik jako dokument HTML (nie zapomnij o znacznikach html, body itd.), gdzie odpowiedź serwera będzie tabelą HTML.
+
+-- UWAGA: Przydatne polecenia: \H \echo \T \pset
+
+-- psql ... < zapytanie.sql > wynik.html
+
+-- \H
+-- \echo '<html><body>'
+-- SELECT 
+--     idmeczu, 
+--     gospodarze[1] AS pierwszy_set, 
+--     (SELECT SUM(s) FROM UNNEST(gospodarze) s) AS suma_gospodarze
+-- FROM 
+--     siatkowka.statystyki
+-- WHERE 
+--     sqrt(gospodarze[1]) < log(2, (SELECT SUM(s) FROM UNNEST(gospodarze) s));
+-- \echo '</body></html>'
+
+-- Zadanie 3.8
+-- ★ Napisz skrypt składający się z poleceń psql, który wykona zapytanie (użyj dowolnego zapytania z zadania 3.6, ale innego niż w zadaniu 3.7) oraz zwróci jego wynik jako dokument tekstowy z polami oddzielonymi przecinkami (Comma Separated Values), z jednym rekordem w jednej linii.
+
+-- UWAGA: Przydatne polecenia: \a \pset fieldsep \t
+
+-- psql ... < zapytanie.sql > wynik.txt
+
+-- \a
+-- \pset fieldsep ','
+-- \t
+-- SELECT 
+--     idmeczu, 
+--     gospodarze[1] AS pierwszy_set, 
+--     (SELECT SUM(s) FROM UNNEST(gospodarze) s) AS suma_gospodarze
+-- FROM 
+--     siatkowka.statystyki
+-- WHERE 
+--     sqrt(gospodarze[1]) < log(2, (SELECT SUM(s) FROM UNNEST(gospodarze) s));
