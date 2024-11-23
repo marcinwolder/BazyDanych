@@ -1,0 +1,309 @@
+-- Zadanie 5.1
+-- baza danych: cukiernia
+
+-- Napisz zapytanie w języku SQL wyświetlające informacje na temat:
+
+-- 5.1.1
+-- łącznej liczby czekoladek w bazie danych (w tabeli czekoladki),
+
+SELECT count(*)
+FROM czekoladki;
+
+-- 5.1.2
+-- łącznej liczby czekoladek z nadzieniem (na 2 sposoby) - podpowiedź: count(*), count(nazwaKolumny),
+
+SELECT count(*)
+FROM czekoladki
+WHERE czekoladki.nadzienie IS NOT NULL;
+
+-- 5.1.3
+-- identyfikator pudełka, w którym jest najwięcej czekoladek (jeśli jest kilka takich pudełek to tylko jedno, przy użyciu LIMIT 1),
+
+SELECT idpudelka
+FROM zawartosc
+GROUP BY idpudelka
+ORDER BY sum(sztuk) DESC
+LIMIT 1;
+
+-- 5.1.4
+-- ★ identyfikatorów pudełek i łącznej liczby czekoladek zawartej w każdym z nich,
+
+SELECT idpudelka, sum(sztuk)
+FROM zawartosc
+GROUP BY idpudelka;
+
+-- 5.1.5
+-- ★ identyfikatorów pudełek i łącznej liczby czekoladek bez orzechów zawartej w każdym z nich (uwaga: należy pokazać 0 przy pudełkach mających tylko czekoladki z orzechami),
+
+SELECT idpudelka, COALESCE(ilosc, 0)
+FROM pudelka
+LEFT JOIN (
+    SELECT idpudelka, sum(sztuk) as ilosc
+    FROM zawartosc
+    JOIN czekoladki USING(idczekoladki)
+    WHERE czekoladki.orzechy IS NULL
+    GROUP BY idpudelka
+) ilosc USING(idpudelka);
+
+-- 5.1.6
+-- ★ identyfikatorów pudełek i łącznej liczby czekoladek w mlecznej czekoladzie zawartej w każdym z nich (uwaga: należy pokazać 0 przy pudełkach mających tylko czekoladki bez mlecznej czekolady).
+
+SELECT idpudelka, COALESCE(ilosc, 0)
+FROM pudelka
+LEFT JOIN (
+    SELECT idpudelka, sum(sztuk) as ilosc
+    FROM zawartosc
+    JOIN czekoladki USING(idczekoladki)
+    WHERE czekoladki.czekolada = 'mleczna'
+    GROUP BY idpudelka
+) ilosc USING(idpudelka);
+
+---
+
+-- Zadanie 5.2
+-- baza danych: cukiernia
+
+-- Napisz zapytanie w języku SQL wyświetlające informacje na temat:
+
+-- 5.2.1
+-- identyfikatorów i masy poszczególnych pudełek,
+
+SELECT idpudelka, sum(masa*sztuk) as masa
+FROM zawartosc
+JOIN czekoladki USING(idczekoladki)
+GROUP BY idpudelka;
+
+-- 5.2.2
+-- identyfikatora i masy pudełka o największej masie (przy użyciu LIMIT 1),
+
+SELECT idpudelka, sum(masa*sztuk) as masa
+FROM zawartosc
+JOIN czekoladki USING(idczekoladki)
+GROUP BY idpudelka
+ORDER BY masa DESC
+LIMIT 1;
+
+-- 5.2.3
+-- ★ średniej masy pudełka w ofercie cukierni,
+
+SELECT avg(masa)
+FROM (
+    SELECT idpudelka, sum(masa*sztuk) as masa
+    FROM zawartosc
+    JOIN czekoladki USING(idczekoladki)
+    GROUP BY idpudelka
+) masa;
+
+-- 5.2.4
+-- ★ identyfikatorów pudełek i średniej wagi pojedynczej czekoladki w każdym z nich,
+
+SELECT idpudelka, sum(masa*sztuk)/sum(sztuk) as srednia
+FROM zawartosc
+JOIN czekoladki USING(idczekoladki)
+GROUP BY idpudelka;
+
+---
+
+-- Zadanie 5.3
+-- baza danych: cukiernia
+
+-- Napisz zapytanie w języku SQL wyświetlające informacje na temat:
+
+-- 5.3.1
+-- liczby zamówień na poszczególne dni,
+
+SELECT datarealizacji, count(*)
+FROM zamowienia
+GROUP BY datarealizacji;
+
+-- 5.3.2
+-- łącznej liczby wszystkich zamówień,
+
+SELECT count(*)
+FROM zamowienia;
+
+-- 5.3.3
+-- ★ łącznej wartości wszystkich zamówień,
+
+SELECT sum(cena*sztuk)
+FROM artykuly
+JOIN pudelka USING(idpudelka);
+
+-- 5.3.4
+-- ★ identyfikatorów klientów, liczby złożonych przez nich zamówień i łącznej wartości złożonych przez nich zamówień (uwaga: należy pokazać 0 przy klientach, którzy nie złożyli żadnych zamówień).
+
+SELECT idklienta, count(idzamowienia) as z_liczba, sum(cena) as s_suma
+FROM zamowienia
+LEFT JOIN (
+    SELECT idzamowienia, sum(cena*sztuk) as cena
+    FROM artykuly
+    JOIN pudelka USING(idpudelka)
+    GROUP BY idzamowienia
+) k USING(idzamowienia)
+GROUP BY idklienta;
+
+---
+
+-- Zadanie 5.4
+-- baza danych: cukiernia
+
+-- Napisz zapytanie w języku SQL wyświetlające informacje na temat:
+
+-- 5.4.1
+-- identyfikatora czekoladki, która występuje w największej liczbie pudełek (przy użyciu LIMIT 1),
+
+SELECT idczekoladki
+FROM zawartosc
+GROUP BY idczekoladki
+ORDER BY count(idpudelka) DESC
+LIMIT 1;
+
+-- 5.4.2
+-- identyfikatora pudełka, które zawiera najwięcej czekoladek bez orzechów (uwaga: jeśli kilka pudełek ma taką samą największą liczbę to należy pokazać wszystkie),
+
+WITH s as (
+    SELECT idpudelka, sum(sztuk) as sztuk
+    FROM zawartosc
+    JOIN czekoladki USING(idczekoladki)
+    WHERE czekoladki.orzechy IS NULL
+    GROUP BY idpudelka
+)
+SELECT idpudelka
+FROM s
+WHERE sztuk = (SELECT max(sztuk) FROM s);
+
+-- 5.4.3
+-- ★ identyfikatora czekoladki, która występuje w najmniejszej liczbie pudełek (uwaga: jeśli kilka czekoladek ma taką samą najmniejszą liczbę to należy pokazać wszystkie) (uwaga: może istnieć czekoladka, która nie występuje w żadnym pudełku),
+
+SELECT idczekoladki
+FROM czekoladki
+LEFT JOIN (
+    SELECT idczekoladki, count(idpudelka) as sztuk
+    FROM zawartosc
+    GROUP BY idczekoladki
+) USING(idczekoladki)
+ORDER BY COALESCE(sztuk, 0) ASC
+LIMIT 1;
+
+-- 5.4.4
+-- ★ identyfikatora pudełka, które jest najczęściej zamawiane przez klientów (przy użyciu LIMIT 1).
+
+SELECT idpudelka
+FROM artykuly
+GROUP BY idpudelka
+ORDER BY count(sztuk) DESC
+LIMIT 1;
+
+---
+
+-- Zadanie 5.5
+-- baza danych: cukiernia
+
+-- Napisz zapytanie w języku SQL wyświetlające informacje na temat:
+
+-- 5.5.1
+-- liczby zamówień na poszczególne kwartały,
+
+SELECT date_part('year', datarealizacji) as rok, date_part('quarter', datarealizacji) as kwartal, count(idzamowienia) as ilosc
+FROM zamowienia
+GROUP BY rok, kwartal;
+
+-- 5.5.2
+-- liczby zamówień na poszczególne miesiące,
+
+SELECT date_part('year', datarealizacji) as rok, date_part('month', datarealizacji) as miesiac, count(idzamowienia) as ilosc
+FROM zamowienia
+GROUP BY rok, miesiac;
+
+-- 5.5.3
+-- ★ liczby zamówień do realizacji w poszczególnych tygodniach,
+
+SELECT date_part('year', datarealizacji) as rok, date_part('week', datarealizacji) as tydzien, count(idzamowienia) as ilosc
+FROM zamowienia
+GROUP BY rok, tydzien;
+
+-- 5.5.4
+-- ★ liczby zamówień do realizacji w poszczególnych miejscowościach.
+
+SELECT miejscowosc, count(idzamowienia)
+FROM zamowienia
+JOIN klienci USING(idklienta)
+GROUP BY miejscowosc;
+
+-- Uwaga: Upewnij się, że zapytania zwracają sensowne dane, np. liczba zamówień w styczniu niezależnie od roku jest bezsensowna.
+
+---
+
+-- Zadanie 5.6
+-- baza danych: cukiernia
+
+-- Napisz zapytanie w języku SQL wyświetlające informacje na temat:
+
+-- 5.6.1
+-- łącznej masy wszystkich pudełek czekoladek znajdujących się w cukierni,
+
+SELECT sum(masa)
+FROM (
+    SELECT idpudelka, sum(masa*sztuk) as masa
+    FROM zawartosc
+    NATURAL JOIN czekoladki
+    GROUP BY idpudelka
+);
+
+-- 5.6.2
+-- ★ łącznej wartości wszystkich pudełek czekoladek znajdujących się w cukierni.
+
+SELECT sum(cena*stan) as wartość
+FROM pudelka;
+
+---
+
+-- Zadanie 5.7
+-- baza danych: cukiernia
+
+-- Zakładając, że koszt wytworzenia pudełka czekoladek jest równy kosztowi wytworzenia zawartych w nim czekoladek, napisz zapytanie wyznaczające:
+
+-- zysk ze sprzedaży jednej sztuki poszczególnych pudełek (różnica między ceną pudełka i kosztem jego wytworzenia),
+
+SELECT idpudelka, p.cena-sum(cz.koszt*z.sztuk) as zysk
+FROM pudelka p
+LEFT JOIN zawartosc z USING(idpudelka)
+LEFT JOIN czekoladki cz USING(idczekoladki)
+GROUP BY idpudelka, p.cena;
+
+-- zysk ze sprzedaży zamówionych pudełek,
+
+SELECT sum(zysk*sztuk) as zysk
+FROM zamowienia
+JOIN artykuly USING(idzamowienia)
+JOIN (
+    SELECT idpudelka, p.cena-sum(cz.koszt*z.sztuk) as zysk
+    FROM pudelka p
+    LEFT JOIN zawartosc z USING(idpudelka)
+    LEFT JOIN czekoladki cz USING(idczekoladki)
+    GROUP BY idpudelka, p.cena
+) z USING(idpudelka);
+-- ★ zysk ze sprzedaży wszystkich pudełek czekoladek w cukierni.
+
+WITH z AS (
+    SELECT idpudelka, p.cena-sum(cz.koszt*z.sztuk) as zysk
+    FROM pudelka p
+    LEFT JOIN zawartosc z USING(idpudelka)
+    LEFT JOIN czekoladki cz USING(idczekoladki)
+    GROUP BY idpudelka, p.cena
+) SELECT sum(zysk*stan) AS zysk
+FROM pudelka
+JOIN z USING(idpudelka);
+
+---
+
+-- Zadanie 5.8
+-- baza danych: cukiernia
+
+-- Napisz zapytanie wyświetlające: liczbę porządkową i identyfikator pudełka czekoladek (idpudelka). Identyfikatory pudełek mają być posortowane alfabetycznie, rosnąco. Liczba porządkowa jest z przedziału 1..N, gdzie N jest ilością pudełek.
+
+-- Uwaga: Można zastosować samozłączenie.
+
+SELECT row_number() OVER (ORDER BY idpudelka ASC) as lp, idpudelka
+FROM pudelka
+ORDER BY idpudelka ASC;
