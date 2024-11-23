@@ -1,0 +1,313 @@
+-- 6.1.1
+
+-- Napisz i wykonaj zapytanie (użyj INSERT), które dodaje do tabeli czekoladki następujące informacje:
+-- idczekoladki: W98,
+-- nazwa: Biały kieł,
+-- czekolada: biała,
+-- orzechy: laskowe,
+-- nadzienie: marcepan,
+-- opis: Rozpływające się w rękach i kieszeniach,
+-- koszt: 45 gr,
+-- masa: 20 g.
+
+INSERT INTO czekoladki VALUES ('W98', 'Biały kieł', 'biała', 'laskowe', 'marcepan', 'Rozpływające się w rękach i kieszeniach', 0.45, 20);
+
+-- SELECT * FROM czekoladki;
+
+-- 6.1.2
+-- Napisz i wykonaj trzy zapytania (użyj INSERT), które dodadzą do tabeli klienci następujące dane osobowe:
+-- idklienta: 90,
+-- nazwa: Matusiak Edward, 
+-- ulica: Kropiwnickiego 6/3,
+-- miejscowosc: Leningrad,
+-- kod: 31-471,
+-- telefon: 031 423 45 38,
+
+-- idklienta: 91,
+-- nazwa: Matusiak Alina,
+-- ulica: Kropiwnickiego 6/3,
+-- miejscowosc: Leningrad,
+-- kod: 31-471,
+-- telefon: 031 423 45 38,
+
+-- idklienta: 92,
+-- nazwa: Kimono Franek,
+-- ulica: Karateków 8,
+-- miejscowosc: Mistrz,
+-- kod: 30-029,
+-- telefon: 501 498 324.
+
+INSERT INTO klienci VALUES 
+(90, 'Matusiak Edward', 'Kropiwnickiego 6/3', 'Leningrad', '31-471', '031 423 45 38'), 
+(91, 'Matusiak Alina', 'Kropiwnickiego 6/3', 'Leningrad', '31-471', '031 423 45 38'),
+(92, 'Kimono Franek', 'Karateków 8', 'Mistrz', '30-029', '501 498 324');
+-- SELECT * FROM klienci;
+
+-- 6.1.3
+-- Dodaj do tabeli klienci dane Izy Matusiak (idklienta 93). Pozostałe dane osobowe Izy Matusiak muszą być takie same jak dla Pana Edwarda Matusiaka. Użyj podzapytań.
+
+INSERT INTO klienci
+SELECT '93' as idklienta, 'Iza Matusiak' as nazwa, ulica, miejscowosc, kod, telefon
+FROM klienci
+WHERE idklienta = 90;
+-- SELECT * FROM klienci;
+
+-- 6.1.4
+-- Sprawdź, czy napisane przez Ciebie zapytania odniosły pożądany skutek tj. czy do w/w tabel zostały dodane odpowiednie wiersze, wykorzystaj SELECT.
+
+SELECT *
+FROM klienci
+WHERE idklienta >= 90;
+
+---
+
+-- 6.2.1
+-- Napisz i wykonaj zapytanie, które doda do tabeli czekoladki następujące pozycje, wykorzystaj wartości NULL w poleceniu INSERT:
+-- IDCzekoladki: X91,
+-- Nazwa: Nieznana Nieznajoma,
+-- Opis: Niewidzialna czekoladka wspomagajaca odchudzanie.,
+-- Koszt: 26 gr,
+-- Masa: 0g,
+
+-- IDCzekoladki: M98,
+-- Nazwa: Mleczny Raj,
+-- Czekolada: Mleczna,
+-- Opis: Aksamitna mleczna czekolada w ksztalcie butelki z mlekiem.,
+-- Koszt: 26 gr,
+-- Masa: 36 g,
+
+INSERT INTO czekoladki VALUES 
+('X91', 'Nieznana Nieznajoma', NULL, NULL, NULL, 'Niewidzialna czekoladka wspomagajaca odchudzanie.', 0.26, 0),
+('M98', 'Mleczny Raj', 'mleczna', NULL, NULL, 'Aksamitna mleczna czekolada w ksztalcie butelki z mlekiem.', 0.26, 36);
+-- SELECT * FROM czekoladki;
+
+-- 6.2.2
+-- Sprawdź, czy napisane przez Ciebie zapytania odniosły pożądany skutek tj. czy do w/w tabel zostały dodane odpowiednie wiersze, wykorzystaj SELECT.
+
+SELECT *
+FROM czekoladki
+WHERE idczekoladki IN ('W98', 'X91', 'M98');
+
+---
+
+-- 6.3.1
+-- Napisz zapytanie, które usunie informacje dodane w Zadaniu 6.2, użyj DELETE.
+
+DELETE FROM czekoladki
+WHERE idczekoladki IN ('X91', 'M98');
+
+-- 6.3.2
+-- Sprawdź, czy odpowiednie rekordy zostały usunięte.
+
+SELECT *
+FROM czekoladki
+WHERE idczekoladki IN ('X91', 'M98');
+
+-- 6.3.3
+INSERT INTO czekoladki VALUES 
+('X91', 'Nieznana Nieznajoma', NULL, NULL, NULL, 'Niewidzialna czekoladka wspomagajaca odchudzanie.', 0.26, 0),
+('M98', 'Mleczny Raj', 'mleczna', NULL, NULL, 'Aksamitna mleczna czekolada w ksztalcie butelki z mlekiem.', 0.26, 36);
+
+---
+
+-- Napisz instrukcje aktualizujące dane w bazie cukiernia. Sprawdź za pomocą instrukcji SELECT, czy odpowiednie rekordy zostały zmienione.
+
+-- 6.4.1
+-- Zmiana nazwiska Izy Matusiak na Nowak.
+
+UPDATE klienci
+SET nazwa = 'Iza Nowak'
+WHERE nazwa = 'Iza Matusiak';
+
+SELECT *
+FROM klienci
+WHERE idklienta = 93;
+
+-- 6.4.2
+-- Obniżenie kosztu czekoladek o identyfikatorach (idczekoladki): W98, M98 i X91, o 10%.
+
+UPDATE czekoladki
+SET koszt = koszt*0.9
+WHERE idczekoladki IN ('W98', 'X91', 'M98');
+
+SELECT *
+FROM czekoladki
+WHERE idczekoladki IN ('W98', 'X91', 'M98');
+
+-- 6.4.3
+-- Ustalenie kosztu czekoladek o nazwie Nieznana Nieznajoma na taką samą jak cena czekoladki o identyfikatorze W98.
+
+UPDATE czekoladki
+SET koszt = (
+    SELECT koszt
+    FROM czekoladki
+    WHERE idczekoladki = 'W98'
+)
+WHERE nazwa = 'Nieznana Nieznajoma';
+
+SELECT *
+FROM czekoladki
+WHERE idczekoladki IN ('W98', 'X91');
+
+-- 6.4.4
+-- ★ Zmiana nazwy z Leningrad na Piotrograd w tabeli klienci.
+
+UPDATE klienci
+SET miejscowosc = 'Piotrograd'
+WHERE miejscowosc = 'Leningrad';
+
+SELECT *
+FROM klienci
+WHERE miejscowosc IN ('Leningrad', 'Piotrograd');
+
+-- 6.4.5
+-- ★ Podniesienie kosztu czekoladek, których dwa ostatnie znaki identyfikatora (idczekoladki) są większe od 90, o 15 groszy.
+
+UPDATE czekoladki
+SET koszt = koszt + 0.15
+WHERE RIGHT(idczekoladki, 2)::INTEGER > 90;
+
+SELECT *
+FROM czekoladki
+WHERE RIGHT(idczekoladki, 2)::INTEGER > 90;
+
+---
+
+-- Napisz instrukcje usuwające z bazy danych informacje o:
+
+-- 6.5.1
+-- klientach o nazwisku Matusiak,
+
+DELETE FROM klienci
+WHERE nazwa LIKE 'Matusiak %';
+
+SELECT *
+FROM klienci
+WHERE nazwa LIKE 'Matusiak %';
+
+-- 6.5.2
+-- ★ klientach o identyfikatorze większym niż 91,
+
+DELETE
+FROM klienci
+WHERE idklienta > 91;
+
+SELECT *
+FROM klienci
+WHERE idklienta > 91;
+
+-- 6.5.3
+-- ★ czekoladkach, których koszt jest większy lub równy 0.45 lub masa jest większa lub równa 36, lub masa jest równa 0.
+
+DELETE
+FROM czekoladki
+WHERE koszt >= 0.45 OR masa >= 36 OR masa = 0;
+
+SELECT *
+FROM czekoladki
+WHERE koszt >= 0.45 OR masa >= 36 OR masa = 0;
+
+---
+
+-- baza danych: cukiernia
+
+-- 6.6
+-- Napisz skrypt sql zawierający instrukcje INSERT wstawiające do bazy danych Cukiernia dwa nowe rekordy do tabeli Pudelka oraz odpowiednie rekordy związane z tymi pudełkami do tabeli Zawartosc. Każde z nowych pudełek ma zawierać łącznie co najmniej 10 czekoladek, w co najmniej 4 różnych smakach.
+
+-- DODANIE PUDEŁEK
+INSERT INTO pudelka
+VALUES 
+('whit', 'Białe najlepsze', 'Najlepsze czekoladki, bo białe... (w sensie z białą czekoladą :o ).', 48, 1000),
+('dark', 'Ciemne takie se', 'Chyba nikt nie lubi czarnych... czekoladek.', 5, 10);
+
+SELECT *
+FROM pudelka
+WHERE idpudelka IN ('whit', 'dark');
+
+-- DODANIE ZAWARTOŚCI DO PIERWSZEGO PUDEŁKA
+INSERT INTO zawartosc
+SELECT 'whit', idczekoladki, 3
+FROM czekoladki
+WHERE czekolada = 'biała';
+
+SELECT *
+FROM zawartosc
+WHERE idpudelka = 'whit';
+
+-- DODANIE ZAWARTOŚCI DO DRUGIEGO PUDEŁKA
+INSERT INTO zawartosc
+SELECT 'dark', idczekoladki, 2
+FROM czekoladki
+WHERE czekolada = 'ciemna';
+
+SELECT *
+FROM zawartosc
+WHERE idpudelka = 'dark';
+
+---
+
+-- 6.7
+-- baza danych: cukiernia, oprogramowanie: psql
+
+-- ★ Polecenie COPY pozwala m.in. kopiowanie danych między bazą danych i standardowym systemem plików. Polecenie COPY FROM kopiuje dane z pliku do wskazanej tabeli. Domyślnie wartości atrybutów są oddzielane tabulatorem, zaś NULL jest oznaczany symbolem \N. Polecenie COPY TO kopiuje dane z bazy danych (cała tabela, wybrane kolumny lub wynik instrukcji SELECT) do pliku. Opcje polecenia pozwalają zdefiniować m.in. separator, oznaczenia wartości null, oznaczenie napisu pustego itp. http://www.postgresql.org/docs/9.1/static/sql-copy.html
+
+-- COPY pudelka TO 'C://Users/marci/Desktop/repo/BD/pudelka';
+
+-- ★ Napisz skrypt zawierający instrukcje COPY wstawiające do bazy danych cukiernia dwa nowe rekordy do tabeli pudelka oraz odpowiednie rekordy związane z tymi pudełkami do tabeli zawartosc. Każde z nowych pudełek ma zawierać łącznie co najmniej 10 czekoladek, w co najmniej 4 różnych smakach.
+
+---
+
+-- Zadanie 6.8
+-- baza danych: cukiernia
+
+-- Napisz instrukcję UDPATE, która dla pudełek dodanych w poprzednich dwóch zadaniach, zwiększa o 1 liczbę czekoladek każdego smaku, które w nich występują.
+
+UPDATE zawartosc
+SET sztuk = sztuk+1
+WHERE idpudelka IN ('whit', 'dark');
+
+-- SELECT *
+-- FROM zawartosc
+-- WHERE idpudelka IN ('whit', 'dark');
+
+-- Napisz skrypt zawierający instrukcje UPDATE, które modyfikują tabelę czekoladki zastępując w kolumnach: czekolada, orzechy i nadzienie wartości Null wartością “brak”.
+
+UPDATE czekoladki
+SET czekolada = 'brak'
+WHERE czekolada IS NULL;
+-- SELECT * 
+-- FROM czekoladki
+-- WHERE czekolada IS NULL;
+UPDATE czekoladki
+SET orzechy = 'brak'
+WHERE orzechy IS NULL;
+-- SELECT * 
+-- FROM czekoladki
+-- WHERE orzechy IS NULL;
+UPDATE czekoladki
+SET nadzienie = 'brak'
+WHERE nadzienie IS NULL;
+-- SELECT * 
+-- FROM czekoladki
+-- WHERE nadzienie IS NULL;
+
+-- ★ Napisz skrypt zawierający instrukcje UPDATE, które anulują zmiany wprowadzone w poprzednim punkcie.
+
+UPDATE czekoladki
+SET czekolada = NULL
+WHERE czekolada = 'brak';
+-- SELECT * 
+-- FROM czekoladki
+-- WHERE czekolada IS NULL;
+UPDATE czekoladki
+SET orzechy = NULL
+WHERE orzechy = 'brak';
+-- SELECT * 
+-- FROM czekoladki
+-- WHERE orzechy IS NULL;
+UPDATE czekoladki
+SET nadzienie = NULL
+WHERE nadzienie = 'brak';
+-- SELECT * 
+-- FROM czekoladki
+-- WHERE nadzienie IS NULL;
