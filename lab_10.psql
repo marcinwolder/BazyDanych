@@ -1,0 +1,131 @@
+-- Zadanie 10.1
+
+SELECT DISTINCT nazwa 
+FROM pudelka NATURAL JOIN zawartosc 
+WHERE idczekoladki 
+  IN (SELECT idczekoladki FROM czekoladki ORDER BY koszt LIMIT 3);
+
+--   nazwy pudełek które zawierają jakąś z 3 najdroższych czekoladek
+ 
+SELECT nazwa 
+FROM czekoladki 
+WHERE koszt = (SELECT MAX(koszt) FROM czekoladki);
+
+-- nazwy najdroższych czekoladek
+
+SELECT p.nazwa, idpudelka 
+FROM (SELECT idczekoladki FROM czekoladki ORDER BY koszt LIMIT 3) 
+  AS ulubioneczekoladki 
+NATURAL JOIN zawartosc 
+NATURAL JOIN pudelka p;
+
+-- nazwa czekoladki i id pudełka, w którym się zawierają, dla 3 najdroższych czekoladek
+ 
+SELECT nazwa, koszt, (SELECT MAX(koszt) FROM czekoladki) AS MAX FROM czekoladki;
+
+-- nazwa, koszt i koszt najdroższej czekoladki z bazy - dla każdej czekoladki
+
+-- Zadanie 10.2
+
+-- Napisz zapytanie wyświetlające informacje na temat zamówień (dataRealizacji, idzamowienia) używając odpowiedniego operatora in/not in/exists/any/all, które:
+
+-- zostały złożone przez klienta, który ma na imię Antoni,
+
+SELECT dataRealizacji, idzamowienia
+FROM zamowienia
+WHERE idklienta IN (
+    SELECT idklienta
+    FROM klienci
+    WHERE nazwa LIKE '% Antoni'
+);
+
+-- zostały złożone przez klientów z mieszkań (zwróć uwagę na pole ulica),
+
+SELECT dataRealizacji, idzamowienia
+FROM zamowienia
+WHERE idklienta IN (
+    SELECT idklienta
+    FROM klienci
+    WHERE ulica LIKE '%/%'
+);
+
+-- ★ zostały złożone przez klienta z Krakowa do realizacji w listopadzie 2013 roku.
+
+SELECT dataRealizacji, idzamowienia
+FROM zamowienia
+WHERE idklienta IN (
+        SELECT idklienta
+        FROM klienci
+        WHERE miejscowosc = 'Kraków'       
+    ) AND
+    date_part('year', datarealizacji) = 2013 AND
+    date_part('month', datarealizacji) = 11;
+
+-- Zadanie 10.3
+
+-- Napisz zapytanie wyświetlające informacje na temat klientów (nazwa, ulica, miejscowość), używając odpowiedniego operatora in/not in/exists/any/all, którzy:
+
+-- złożyli zamówienia z datą realizacji 12.11.2013,
+
+SELECT DISTINCT nazwa, ulica, miejscowosc
+FROM klienci k
+WHERE '2013-11-12' = ANY (
+    SELECT datarealizacji
+    FROM zamowienia
+    WHERE idklienta = k.idklienta
+);
+
+-- złożyli zamówienia z datą realizacji w listopadzie 2013,
+
+SELECT DISTINCT nazwa, ulica, miejscowosc
+FROM klienci k
+WHERE '2013-11' = ANY (
+    SELECT to_char(datarealizacji, 'YYYY-MM')
+    FROM zamowienia
+    WHERE idklienta = k.idklienta
+);
+
+-- zamówili pudełko Kremowa fantazja lub Kolekcja jesienna,
+
+SELECT DISTINCT nazwa, ulica, miejscowosc
+FROM klienci
+JOIN zamowienia USING(idklienta)
+WHERE idzamowienia IN (
+  SELECT idzamowienia
+  FROM artykuly
+  JOIN pudelka USING(idpudelka)
+  WHERE nazwa IN ('Kremowa fantazja', 'Kolekcja jesienna')  
+);
+
+
+-- zamówili co najmniej 2 sztuki pudełek Kremowa fantazja lub Kolekcja jesienna w ramach jednego zamówienia,
+
+SELECT DISTINCT nazwa, ulica, miejscowosc
+FROM klienci
+JOIN zamowienia USING(idklienta)
+WHERE idzamowienia IN (
+  SELECT idzamowienia
+  FROM artykuly a
+  JOIN pudelka p USING(idpudelka)
+  WHERE p.nazwa IN ('Kremowa fantazja', 'Kolekcja jesienna') AND
+    a.sztuk >= 2
+);
+
+-- zamówili pudełka, które zawierają czekoladki z migdałami,
+
+SELECT DISTINCT nazwa, ulica, miejscowosc
+FROM klienci
+JOIN zamowienia USING(idklienta)
+JOIN artykuly USING(idzamowienia)
+WHERE idpudelka IN
+
+SELECT DISTINCT idklienta
+FROM zamowienia
+JOIN artykuly USING(idzamowienia)
+JOIN pudelka USING(idpudelka)
+WHERE nazwa IN ('Kremowa fantazja', 'Kolekcja jesienna') AND
+    sztuk >= 2;
+
+
+-- złożyli przynajmniej jedno zamówienie,
+-- nie złożyli żadnych zamówień.

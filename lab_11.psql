@@ -1,0 +1,123 @@
+-- Zadanie 11.1
+-- Napisz funkcję masaPudelka wyznaczającą masę pudełka jako sumę masy czekoladek w nim zawartych. Funkcja jako argument przyjmuje identyfikator pudełka. Przetestuj działanie funkcji na podstawie prostej instrukcji select.
+DROP FUNCTION masaPudelka(id CHAR(4));
+
+CREATE
+OR REPLACE FUNCTION masaPudelka(id CHAR(4)) RETURNS int LANGUAGE plpgsql AS $$
+    DECLARE
+        masa int := 0;
+        r record;
+    BEGIN
+        for r in 
+            SELECT * 
+            FROM zawartosc
+            JOIN czekoladki USING(idczekoladki)
+            WHERE idpudelka = id
+        loop
+            masa := masa + (r.masa * r.sztuk);
+        end loop;
+        return masa;
+    END;
+$$;
+
+SELECT masaPudelka('alls');
+
+SELECT sum(sztuk*masa) as masapudelka
+FROM zawartosc
+JOIN czekoladki USING(idczekoladki)
+WHERE idpudelka = 'alls';
+
+-- ★ Napisz funkcję liczbaCzekoladek wyznaczającą liczbę czekoladek znajdujących się w pudełku. Funkcja jako argument przyjmuje identyfikator pudełka. Przetestuj działanie funkcji na podstawie prostej instrukcji select.
+
+CREATE OR REPLACE FUNCTION liczbaCzekoladek(id CHAR(4)) RETURNS int AS $$
+    DECLARE
+        count int := 0;
+        r record;
+    BEGIN
+        for r in
+            SELECT *
+            FROM zawartosc
+            WHERE idpudelka = id
+        loop
+            count := count + r.sztuk;
+        end loop;
+        return count;
+    END;
+$$
+LANGUAGE plpgsql;
+
+SELECT liczbaCzekoladek('alls');
+
+SELECT sum(sztuk)
+FROM zawartosc
+WHERE idpudelka = 'alls';
+
+---
+
+-- Zadanie 11.2
+
+-- Napisz funkcję zysk obliczającą zysk jaki cukiernia uzyskuje ze sprzedaży jednego pudełka czekoladek, zakładając, że zysk ten jest różnicą między ceną pudełka, a kosztem wytworzenia zawartych w nim czekoladek i kosztem opakowania (0,90 zł dla każdego pudełka). Funkcja jako argument przyjmuje identyfikator pudełka. Przetestuj działanie funkcji na podstawie prostej instrukcji select.
+
+CREATE OR REPLACE FUNCTION zysk(id CHAR(4)) RETURNS decimal AS $$
+    DECLARE
+        r record;
+        zysk decimal := 0;
+    BEGIN
+        SELECT cena
+        INTO zysk
+        FROM pudelka
+        WHERE idpudelka = id;
+
+        for r in
+            SELECT *
+            FROM pudelka p
+            JOIN zawartosc z USING(idpudelka)
+            JOIN czekoladki cz USING(idczekoladki)
+            WHERE idpudelka = id
+        loop
+            zysk := zysk - r.koszt;
+        end loop;
+
+        zysk := zysk - 0.90;
+        return zysk;
+    END;
+$$
+LANGUAGE plpgsql;
+
+SELECT zysk('alls');
+
+SELECT cena-sum(koszt)-0.90
+FROM pudelka p
+JOIN zawartosc z USING(idpudelka)
+JOIN czekoladki cz USING(idczekoladki)
+WHERE idpudelka = 'alls'
+GROUP BY cena;
+
+-- Napisz instrukcję select obliczającą zysk jaki cukiernia uzyska ze sprzedaży pudełek zamówionych w wybranym dniu.
+
+WITH zyski AS (
+    SELECT idpudelka, cena-sum(koszt)-0.90 as zysk_per_pudelko
+    FROM pudelka p
+    JOIN zawartosc z USING(idpudelka)
+    JOIN czekoladki cz USING(idczekoladki)
+    GROUP BY idpudelka, cena
+)
+SELECT sum(sztuk * zysk_per_pudelko) as zysk
+FROM zamowienia
+JOIN artykuly USING(idzamowienia)
+JOIN zyski USING(idpudelka)
+WHERE datarealizacji = '2013-11-12';
+
+---
+
+-- Zadanie 11.3
+
+-- Napisz funkcję sumaZamowien obliczającą łączną wartość zamówień złożonych przez klienta, które czekają na realizację (są w tabeli Zamowienia). Funkcja jako argument przyjmuje identyfikator klienta. Przetestuj działanie funkcji.
+
+
+
+-- Napisz funkcję rabat obliczającą rabat jaki otrzymuje klient składający zamówienie. Funkcja jako argument przyjmuje identyfikator klienta. Rabat wyliczany jest na podstawie wcześniej złożonych zamówień w sposób następujący:
+
+-- 4 % jeśli wartość zamówień jest z przedziału 101-200 zł;
+-- 7 % jeśli wartość zamówień jest z przedziału 201-400 zł;
+-- 8 % jeśli wartość zamówień jest większa od 400 zł.

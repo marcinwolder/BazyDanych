@@ -1,0 +1,106 @@
+-- Zadanie 9.1
+
+CREATE SCHEMA kwiaciarnia;
+
+-- SELECT * FROM pg_namespace;
+
+CREATE TABLE kwiaciarnia.klienci (
+    idklienta VARCHAR(10) PRIMARY KEY, -- typ znakowy, maksymalnie 10 znaków (tzn. użyć varchar(10)), klucz główny,
+    haslo VARCHAR(10) NOT NULL CHECK (length(haslo) >= 4), -- typ znakowy, maksymalnie 10 znaków, minimum 4 znaki, wymagane,
+    nazwa VARCHAR(40) NOT NULL, -- typ znakowy, maksymalnie 40 znaków, wymagane,
+    miasto VARCHAR(40) NOT NULL, -- typ znakowy, maksymalnie 40 znaków, wymagane,
+    kod CHAR(6) NOT NULL, -- typ znakowy, dokładnie 6 znaków, wymagane,
+    adres VARCHAR(40) NOT NULL, -- typ znakowy, maksymalnie 40 znaków, wymagane,
+    email VARCHAR(40), -- typ znakowy, maksymalnie 40 znaków,
+    telefon VARCHAR(16) NOT NULL, -- typ znakowy, maksymalnie 16 znaków, wymagane,
+    fax VARCHAR(16), -- typ znakowy, maksymalnie 16 znaków,
+    nip CHAR(13), -- typ znakowy, dokładnie 13 znaków,
+    regon CHAR(9) -- typ znakowy, dokładnie 9 znaków,
+);
+
+CREATE TABLE kwiaciarnia.kompozycje (
+    idkompozycji CHAR(5) PRIMARY KEY, -- typ znakowy, dokładnie 5 znaków (tzn. użyć char(5)), klucz główny,
+    nazwa VARCHAR(40) NOT NULL, -- typ znakowy, maksymalnie 40 znaków, wymagane,
+    opis VARCHAR(100), -- typ znakowy, maksymalnie 100 znaków,
+    cena NUMERIC(10, 2) CHECK (cena >= 40.00), -- typ numeryczny z dokładnością do 2 cyfr po przecinku, minimalna cena to 40.00 zł,
+    minimum INTEGER, -- typ całkowity,
+    stan INTEGER -- typ całkowity,
+);
+
+CREATE TABLE kwiaciarnia.odbiorcy (
+    idodbiorcy SERIAL PRIMARY KEY, -- typ serial, klucz główny,
+    nazwa VARCHAR(40) NOT NULL, -- typ znakowy, maksymalnie 40 znaków, wymagane,
+    miasto VARCHAR(40) NOT NULL, -- typ znakowy, maksymalnie 40 znaków, wymagane,
+    kod CHAR(6) NOT NULL, -- typ znakowy, dokładnie 6 znaków, wymagane,
+    adres VARCHAR(40) NOT NULL -- typ znakowy, maksymalnie 40 znaków, wymagane,
+);
+
+CREATE TABLE kwiaciarnia.zamowienia (
+    idzamowienia INTEGER PRIMARY KEY, -- typ całkowity, klucz główny,
+    idklienta VARCHAR(10) NOT NULL REFERENCES kwiaciarnia.klienci, -- typ znakowy, maksymalnie 10 znaków, klucz obcy, wymagane,
+    idodbiorcy INTEGER NOT NULL REFERENCES kwiaciarnia.odbiorcy, -- typ całkowity, klucz obcy, wymagane,
+    idkompozycji CHAR(5) NOT NULL REFERENCES kwiaciarnia.kompozycje, -- typ znakowy, dokładnie 5 znaków, klucz obcy, wymagane,
+    termin DATE NOT NULL, -- data, wymagane,
+    cena NUMERIC(10, 2), -- typ numeryczny z dokładnością do 2 cyfr po przecinku,
+    zaplacone BOOLEAN, -- typ logiczny,
+    uwagi VARCHAR(200) -- typ znakowy, maksymalnie 200 znaków,
+);
+
+CREATE TABLE kwiaciarnia.historia (
+    idzamowienia INTEGER PRIMARY KEY, -- typ całkowity, klucz główny,
+    idklienta VARCHAR(10), -- typ znakowy, maksymalnie 10 znaków,
+    idkompozycji CHAR(5), -- typ znakowy, dokładnie 5 znaków,
+    cena NUMERIC(10, 2), -- typ numeryczny z dokładnością do 2 cyfr po przecinku,
+    termin DATE -- data,
+);
+
+CREATE TABLE kwiaciarnia.zapotrzebowanie (
+    idkompozycji CHAR(5) PRIMARY KEY REFERENCES kwiaciarnia.kompozycje, -- typ znakowy, dokładnie 5 znaków, klucz główny i klucz obcy,
+    data DATE -- data.
+);
+
+-- Zadanie 9.2
+
+COPY kwiaciarnia.klienci FROM STDIN WITH (DELIMITER ';', NULL 'BRAK DANYCH');
+-- SELECT * FROM kwiaciarnia.klienci;
+
+COPY kwiaciarnia.kompozycje FROM STDIN WITH (DELIMITER ';', NULL 'BRAK DANYCH');
+-- SELECT * FROM kwiaciarnia.kompozycje;
+
+COPY kwiaciarnia.odbiorcy(nazwa,miasto,kod,adres) FROM STDIN WITH (DELIMITER ';', NULL 'BRAK DANYCH');
+-- SELECT * FROM kwiaciarnia.odbiorcy;
+
+COPY kwiaciarnia.zamowienia FROM STDIN WITH (DELIMITER ';', NULL 'BRAK DANYCH');
+-- SELECT * FROM kwiaciarnia.zamowienia;
+
+COPY kwiaciarnia.historia FROM STDIN WITH (DELIMITER ';', NULL 'BRAK DANYCH');
+-- SELECT * FROM kwiaciarnia.historia;
+
+SELECT pg_get_serial_sequence('kwiaciarnia.odbiorcy', 'idodbiorcy');
+SELECT currval('kwiaciarnia.odbiorcy_idodbiorcy_seq');
+SELECT lastval();
+
+-- Zadanie 9.3
+
+CREATE SCHEMA firma;
+
+CREATE TABLE firma.dzialy (
+    iddzialu CHAR(5) PRIMARY KEY, -- typ znakowy, dokładnie 5 znaków, klucz główny,
+    nazwa VARCHAR(32) NOT NULL, -- typ znakowy, maksymalnie 32 znaki, wymagane,
+    lokalizacja VARCHAR(24) NOT NULL, -- typ znakowy, maksymalnie 24 znaki, wymagane,
+    kierownik INTEGER -- liczba całkowita, klucz obcy odwołujący się do pola idpracownika w relacji pracownicy.
+);
+
+CREATE TABLE firma.pracownicy (
+    idpracownika INTEGER PRIMARY KEY, -- liczba całkowita, klucz główny,
+    nazwisko VARCHAR(32) NOT NULL, -- typ znakowy, maksymalnie 32 znaki, wymagane,
+    imie VARCHAR(16) NOT NULL, -- typ znakowy, maksymalnie 16 znaków, wymagane,
+    dataUrodzenia DATE NOT NULL, -- data, wymagane,
+    dzial CHAR(5) NOT NULL REFERENCES firma.dzialy, -- typ znakowy, dokładnie 5 znaków, wymagane, klucz obcy odwołujący się do pola iddzialu w relacji dzialy,
+    stanowisko VARCHAR(24), -- typ znakowy, maksymalnie 24 znaki,
+    pobory NUMERIC(10, 2) -- typ stałoprzecinkowy z dokładnością do 2 miejsc po przecinku.
+);
+
+ALTER TABLE firma.dzialy
+    ALTER COLUMN iddzialu
+        ADD REFERENCES firma.pracownicy;
